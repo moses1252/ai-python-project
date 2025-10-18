@@ -43,6 +43,14 @@ pen.hideturtle()
 pen.goto(0, 260)
 pen.write("Score: 0  High Score: 0", align="center", font=("Courier", 18, "normal"))
 
+# --- Game Over Display ---
+game_over_text = turtle.Turtle()
+game_over_text.speed(0)
+game_over_text.color("red")
+game_over_text.penup()
+game_over_text.hideturtle()
+game_over_text.goto(0, 0)
+
 # --- Movement Functions ---
 def go_up():
     if head.direction != "down":
@@ -68,17 +76,27 @@ def d_right(): go_right()
 
 def move():
     if head.direction == "up":
-        y = head.ycor()
-        head.sety(y + 20)
-    if head.direction == "down":
-        y = head.ycor()
-        head.sety(y - 20)
-    if head.direction == "left":
-        x = head.xcor()
-        head.setx(x - 20)
-    if head.direction == "right":
-        x = head.xcor()
-        head.setx(x + 20)
+        head.sety(head.ycor() + 20)
+    elif head.direction == "down":
+        head.sety(head.ycor() - 20)
+    elif head.direction == "left":
+        head.setx(head.xcor() - 20)
+    elif head.direction == "right":
+        head.setx(head.xcor() + 20)
+
+# --- Reset Function ---
+def reset_game():
+    global score
+    time.sleep(1)
+    head.goto(0, 0)
+    head.direction = "stop"
+    for segment in segments:
+        segment.goto(1000, 1000)
+    segments.clear()
+    score = 0
+    pen.clear()
+    pen.write(f"Score: {score}  High Score: {high_score}", align="center", font=("Courier", 18, "normal"))
+    game_over_text.clear()
 
 # --- Keyboard Bindings ---
 win.listen()
@@ -99,23 +117,11 @@ while True:
 
     # Check for collision with wall
     if head.xcor() > 290 or head.xcor() < -290 or head.ycor() > 290 or head.ycor() < -290:
-        time.sleep(1)
-        head.goto(0, 0)
-        head.direction = "stop"
-
-        # Hide segments
-        for segment in segments:
-            segment.goto(1000, 1000)
-        segments.clear()
-
-        # Reset score
-        score = 0
-        pen.clear()
-        pen.write(f"Score: {score}  High Score: {high_score}", align="center", font=("Courier", 18, "normal"))
+        game_over_text.write("💀 GAME OVER 💀", align="center", font=("Courier", 30, "bold"))
+        reset_game()
 
     # Check for collision with food
     if head.distance(food) < 20:
-        # Move food to random location
         x = random.randint(-280, 280)
         y = random.randint(-280, 280)
         food.goto(x, y)
@@ -143,23 +149,14 @@ while True:
 
     # Move first segment to where the head was
     if len(segments) > 0:
-        x = head.xcor()
-        y = head.ycor()
-        segments[0].goto(x, y)
+        segments[0].goto(head.xcor(), head.ycor())
 
     move()
 
     # Check for collision with itself
     for segment in segments:
         if segment.distance(head) < 20:
-            time.sleep(1)
-            head.goto(0, 0)
-            head.direction = "stop"
-            for segment in segments:
-                segment.goto(1000, 1000)
-            segments.clear()
-            score = 0
-            pen.clear()
-            pen.write(f"Score: {score}  High Score: {high_score}", align="center", font=("Courier", 18, "normal"))
+            game_over_text.write("💀 GAME OVER 💀", align="center", font=("Courier", 30, "bold"))
+            reset_game()
 
     time.sleep(delay)
